@@ -105,7 +105,68 @@ public class ClientControler{
 			}
 		});
 
-				
+		JPanel temp = view.mainPanel;
+		temp.addKeyListener( new KeyAdapter(){
+				public void keyPressed(KeyEvent e){
+					if(e.getKeyCode() == KeyEvent.VK_UP){
+						model.moveUp = true;
+						model.moveDown = false;
+						model.moveLeft = false;
+						model.moveRight = false;
+					}
+					if(e.getKeyCode() == KeyEvent.VK_DOWN ){
+						model.moveDown = true;
+						model.moveUp = false;
+						model.moveLeft = false;
+						model.moveRight = false;
+					}
+					if(e.getKeyCode() == KeyEvent.VK_LEFT ){
+						model.moveLeft = true;
+						model.moveUp = false;
+						model.moveDown = false;
+						model.moveRight = false;
+					}
+					if(e.getKeyCode() == KeyEvent.VK_RIGHT ){
+						model.moveLeft = false;
+						model.moveUp = false;
+						model.moveDown = false;
+						model.moveRight = true;
+					}
+
+					if(e.getKeyChar() == 's')
+							model.fire = true;
+
+					if(e.getKeyCode()==e.VK_ENTER){
+						if(!view.messageField.getText().equals("")){
+							model.addMessage("用户端玩家说：" + view.messageField.getText());
+							model.playerTypedMessage += "e" + view.messageField.getText() + ";";
+							view.messageField.setText("");
+						}
+					}
+
+					if(e.getKeyChar() == 'y' && model.gameOver && !model.clientVoteYes){
+						model.clientVoteYes = true;
+						model.addMessage("等待主机端玩家回应...");
+					}
+
+					if(e.getKeyChar() == 'n'  && model.gameOver)
+						model.clientVoteNo = true;
+				}
+
+				public void keyReleased(KeyEvent e){
+					if(e.getKeyCode() == KeyEvent.VK_UP)
+						model.moveUp = false;
+					if(e.getKeyCode() == KeyEvent.VK_DOWN )
+						model.moveDown = false;
+					if(e.getKeyCode() == KeyEvent.VK_LEFT )
+						model.moveLeft = false;
+					if(e.getKeyCode() == KeyEvent.VK_RIGHT )
+						model.moveRight = false;
+					if(e.getKeyChar() == 's')
+							model.fire = false;
+				}
+			}
+		);
 
 	}
 }

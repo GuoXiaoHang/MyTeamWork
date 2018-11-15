@@ -4,10 +4,14 @@ import java.awt.event.ActionListener;
 import java.io.PrintStream;
 
 public class Ticker implements Runnable{
+	
+
+
 	ActionListener al;
 	private boolean isTicking;
 	Thread t;
 	int delay;
+
 	public Ticker(int i, ActionListener actionlistener){
 		al = actionlistener;
 		delay = i;
@@ -21,6 +25,13 @@ public class Ticker implements Runnable{
 		t = new Thread(this);
 		t.start();
 		isTicking = false;
+	}
+
+	public void addActionListener(ActionListener actionlistener){
+		if(al == null)
+			al = actionlistener;
+		else
+			System.out.println("WARNING: ActionListener already added to Ticker.");
 	}
 
 	public boolean isRunning(){
@@ -42,12 +53,27 @@ public class Ticker implements Runnable{
 	public int getDelay(){
 		return delay;
 	}
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		
+	
+	private void fireActionPerformed(){
+		if(al == null || !isTicking){
+			return;
+		} else{
+			ActionEvent actionevent = new ActionEvent(this, 0, null);
+			al.actionPerformed(actionevent);
+			return;
+		}
 	}
-
+	
+	public void run(){
+		do{
+			fireActionPerformed();
+			try{
+				Thread.sleep(delay);
+			}catch(InterruptedException interruptedexception){
+				System.out.println("WARNING: Ticker thread interrupted.");
+			}
+		} while(true);
+	}
 }
+
 

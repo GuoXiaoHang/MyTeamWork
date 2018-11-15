@@ -1,5 +1,6 @@
 package client;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
 
 public class bullet implements Actor{
 	public int xPos;
@@ -15,6 +16,15 @@ public class bullet implements Actor{
 		this.direction = direction;
 	}
 
+	public void draw(Graphics g){
+		g.setColor(Color.lightGray);
+		if(direction == 0 || direction == 1)
+			g.fillRect(xPos - 1,yPos - 4, 3, 9);
+		if(direction == 2 || direction == 3)
+			g.fillRect(xPos - 4,  yPos - 1, 9, 3);
+		gameModel.removeActor(this);
+	}
+
 	public int getxPos(){
 		return xPos;
 	}
@@ -25,12 +35,6 @@ public class bullet implements Actor{
 
 	public String getType(){
 		return Type;
-	}
-
-	@Override
-	public void draw(Graphics g) {
-		// TODO Auto-generated method stub
-		
 	}
 }
 

@@ -1,8 +1,12 @@
 package server;
-import java.awt.*;
 //创建接口
-public interface Actor {
+import java.awt.*;
+
+public interface Actor{
 	public void draw(Graphics g);
-	public int getxPos();
-	public int getyPos();
+	public void move();
+	public String getType();
+	public Rectangle getBorder();
+	public Rectangle[] getDetailedBorder();
+	public boolean walldestoried();
 }

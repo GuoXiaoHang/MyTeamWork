@@ -20,17 +20,22 @@ public class bomb implements Actor{
 			}
 	}
 
+	public void draw(Graphics g){
+		g.setColor(Color.red);
+		g.fillOval(xPos-outer, yPos-outer, 2*outer, 2*outer);
+		g.setColor(Color.orange);
+		g.fillOval(xPos-middle, yPos-middle, 2*middle, 2*middle);
+		g.setColor(Color.yellow);
+		g.fillOval(xPos-inner, yPos-inner, 2*inner, 2*inner);
+
+		gameModel.removeActor(this);
+	}
+
 	public int getxPos(){
 		return xPos;
 	}
 
 	public int getyPos(){
 		return yPos;
-	}
-	
-	@Override
-	public void draw(Graphics g) {
-		// TODO Auto-generated method stub
-		
 	}
 }

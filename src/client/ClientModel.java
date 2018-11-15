@@ -44,6 +44,18 @@ public class ClientModel implements ActionListener{
 	public boolean moveRight;
 	public boolean fire;
 
+
+	public ClientModel(ClientView thisview){
+		view = thisview;
+		messageQueue = new String[8];
+		view.mainPanel.messageQueue = messageQueue;
+		addMessage("欢迎来到坦克大战用户端！请输入主机IP地址然后点击\"连接主机\"按钮开始游戏");
+
+		t = new Ticker(1000);
+		t.addActionListener(this);
+
+	}
+
 	public void connectServer(){
 		addMessage("正在连接主机");
 
@@ -70,17 +82,126 @@ public class ClientModel implements ActionListener{
 		//加载游戏 texture
 		textures = new Image[88];
 		for(int i = 1; i < textures.length+1; i++)
-			textures[i-1] = Toolkit.getDefaultToolkit().getImage("image\\" + i + ".jpg");
+			textures[i-1] = Toolkit.getDefaultToolkit().getImage("image_client\\" + i + ".jpg");
 
 
 		drawingList = new Actor[400];
 
 		gameStarted = true;
+		view.mainPanel.gameStarted = gameStarted;;
+		view.mainPanel.drawingList = drawingList;
 		view.messageField.setEnabled(true);
 		addMessage("载入完毕，游戏开始了！");
 	}
 
+	public void actionPerformed(ActionEvent e){
+		connectServer();
 
+		//如果程序不能连接到服务器然后什么都不做
+		if(!serverConnected)
+				return;
+
+		//游戏逻辑循环,客户端程序实际不执行任何逻辑计算,它只接受drawing-instructions
+		try{
+			while ((fromServer = in.readLine()) != null) {
+                fromUser = "";
+
+                gameFlow++;
+
+				if(pausePressed){
+					fromUser+= "x;";
+					pausePressed = false;
+				}
+
+				if(gameOver){
+					if(clientVoteNo)
+						System.exit(0);
+
+					if(clientVoteYes){
+						fromUser+="j;";
+						if(serverVoteYes){
+							addMessage("主机端玩家决定再玩一次，游戏重新开始了...");
+							gameOver = false;
+							clientVoteYes = false;
+							serverVoteYes = false;
+						}
+					}
+				}
+
+				//指令字符串做出反馈,告诉服务器客户端在做什么
+				fromUser +="m";
+				if(moveUp)
+					fromUser+= "1";
+				else
+					fromUser+= "0";
+				if(moveDown)
+					fromUser+="1";
+				else
+					fromUser+= "0";
+				if(moveLeft)
+					fromUser+="1";
+				else
+					fromUser+= "0";
+				if(moveRight)
+					fromUser+="1";
+				else
+					fromUser+= "0";
+				if(fire)
+					fromUser+="1";
+				else
+					fromUser+= "0";
+				fromUser+=";";
+
+				//来自服务器的进程指令
+				instructionHandler.handleInstruction(this, fromServer);
+
+				//从消息队列中删除一个消息每10秒,(如果有)
+				if(gameFlow%300 == 0)
+					removeMessage();
+
+				//输出玩家坦克信息
+				if(!playerTypedMessage.equals("")){
+					fromUser+=playerTypedMessage;
+					playerTypedMessage = "";
+				}
+
+				//发送反馈指令
+				out.println(fromUser);
+
+				//调用视图重新绘制它自己
+				view.mainPanel.repaint();
+
+				//如果切换到对话模式的玩家,那么停止所有坦克行动
+				if(!view.mainPanel.hasFocus()){
+					moveLeft = false;
+					moveUp = false;
+					moveDown = false;
+					moveRight = false;
+					fire = false;
+				}
+        	}
+		}catch(Exception ex){
+			ex.printStackTrace();
+			t.stop();
+			view.messageField.setEnabled(false);
+			serverConnected = false;
+			gameStarted = false;
+			view.mainPanel.gameStarted = false;
+			gameOver = false;
+			addMessage("主机端退出了");
+			view.IPfield.setFocusable(true);
+			view.IPfield.setEnabled(true);
+
+			//当有错误发生时,关闭创建的任何事情
+			try{
+				out.close();
+				in.close();
+				clientSocket.close();
+			}catch(Exception exc){
+				System.out.println(exc);
+			}
+		}
+	}
 
 	//在屏幕上显示一条消息
 	public void addMessage(String message){
@@ -94,6 +215,9 @@ public class ClientModel implements ActionListener{
 			messageQueue[7] = message;
 		}
 
+		//调用视图来重新绘制屏幕，如果没有开始游戏
+		if(!gameStarted)
+			view.mainPanel.repaint();
 	}
 
 	//删除最早的消息在屏幕上
@@ -106,6 +230,9 @@ public class ClientModel implements ActionListener{
 			messageQueue[i] = messageQueue[i+1];
 		messageQueue[messageIndex] = null;
 
+		//调用视图来重新绘制屏幕如果没有开始游戏
+		if(!gameStarted)
+			view.mainPanel.repaint();
 	}
 
 	//添加一个游戏对象(如坦克、子弹等)图纸清单
@@ -124,12 +251,6 @@ public class ClientModel implements ActionListener{
 						drawingList[i] = null;
 						break;
 			}
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub
-		
 	}
 
 
